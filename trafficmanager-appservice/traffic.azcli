@@ -1,0 +1,79 @@
+# Login no Azure
+az login --use-device-code
+
+# Listar todas as Regiões
+az account list-locations
+
+# Variaveis
+local1=brazilsouth
+local2=eastus 
+local3=germanynorth
+
+rg=rg-traffic
+plan1=plano-brazil
+plan2=plano-usa
+plan3=plano-world
+
+appservice1=apptrafficbrazil
+appservice2=apptrafficusa
+appservice3=apptrafficworld
+
+# Criar grupo de recursos
+az group create -l $local1 -n $rg
+
+# Criar Plano de aplicativo Brazil com SKU S1
+az appservice plan create -g $rg -n $plan1 --sku S1 -l $local1
+
+# Criar App Service Brazil
+az webapp create -g $rg -n $appservice1 -p $plan1
+
+# Criar Plano de aplicativo USA com SKU S1
+az appservice plan create -g $rg -n $plan2 --sku S1 -l $local2
+
+# Criar App Service USA
+az webapp create -g $rg -n $appservice2 -p $plan2
+
+# Criar Plano de aplicativo WORLD com SKU S1
+az appservice plan create -g $rg -n $plan3 --sku S1 -l $local3
+
+# Criar App Service WORLD
+az webapp create -g $rg -n $appservice3 -p $plan3
+
+# Traffic Manager
+
+traffic=traffic-absteting
+
+# Se estiver usando bash no Windows
+export MSYS_NO_PATHCONV=1
+
+# Criar Traffic Manager Profile
+az network traffic-manager profile create -g $rg -n $traffic --routing-method Geographic \
+        --unique-dns-name $traffic --ttl 30 \
+        --protocol HTTP --port 80 --path "/"
+
+# Criar Traffic Manager Endpoint - Brazil
+az webapp show -g $rg -n $appservice1 --query "id"
+id1=/subcriptions/572b464a-2798-41c4-aed5-d6694e38c5e3/resourceGroups/rg-traffic/providers/Microsoft.Web/sites/apptrafficbrazil
+
+# Listar regiões para GeoMaping no Traffic Manager 
+az network traffic-manager endpoint show-geographic-hierarchy
+
+az network traffic-manager endpoint create -n $appservice1 -g $rg --profile-name $traffic \
+        --geomapping GEO-SA --type AzureEndpoints \
+        --target-resource-id $id1 --endpoints-status Enabled 
+
+# Criar Traffic Manager Endpoint - USA
+az webapp show -g $rg -n $appservice2 --query "id"
+id2=/subcriptions/572b464a-2798-41c4-aed5-d6694e38c5e3/resourceGroups/rg-traffic/providers/Microsoft.Web/sites/apptrafficusa
+
+az network traffic-manager endpoint create -n $appservice2 -g $rg --profile-name $traffic \
+        --geomapping GEO-NA --type AzureEndpoints \
+        --target-resource-id $id2 --endpoints-status Enabled 
+
+# Criar Traffic Manager Endpoint - WORLD
+az webapp show -g $rg -n $appservice3 --query "id"
+id3=/subcriptions/572b464a-2798-41c4-aed5-d6694e38c5e3/resourceGroups/rg-traffic/providers/Microsoft.Web/sites/apptrafficworld
+
+az network traffic-manager endpoint create -n $appservice3 -g $rg --profile-name $traffic \
+        --geomapping WORLD --type AzureEndpoints \
+        --target-resource-id $id3 --endpoints-status Enabled 

@@ -1,0 +1,115 @@
+# Login no Azure
+az login
+
+# Parametros Gerais
+rg=rg-lb-internal
+local=westus3
+
+# Parametros da Rede Virtual (VNET)
+vnet=vnet-loadbalancer
+snet=snet-loadbalancer
+
+# Parametros Load Balancer Interno
+lb=loadbalancer-internal
+backendpool=backendpool
+frontend=frontend
+healthprobe=healthprobe
+nsg=nsg-lb-internal
+
+# Parametros Maquinas Virtuais
+zonearray=(1 2)
+user=azureuser
+pass=tr@inig2023
+img=Win2019DataCenter
+sku=Standard_B2s
+
+# Parametros NAT Gateway
+ipnat=ip-natgateway
+natgtw=nat-gateway
+
+# Parametros Azure Bastion
+ipbastion=ip-bastion
+snetvmtest=snet-vm-win10
+nicvmtest=nic-win10
+img=MicrosoftWindowsDesktop:Windows-10:21h1-ent:latest
+
+# Criar Grupo de Recursos
+az group create -n $rg -l $local
+
+# Criar Virtual Network (VNET)
+az network vnet create -g $rg -l $local -n $vnet --address-prefixes 10.1.0.0/16 --subnet-name $snet --subnet-prefixes 10.1.0.0/24
+
+# Criar Load Balancer Interno
+az network lb create -g $rg -n $lb --sku Standard --vnet-name $vnet --subnet $snet --frontend-ip-name $frontend --backend-pool-name $backendpool
+
+# Criar Health Probe
+az network lb probe create -g $rg --lb-name $lb -n $healthprobe --protocol tcp --port 80
+
+# Criar NSG 
+az network nsg create -g $rg -n $nsg
+
+# Criar Health Probe Rule 
+az network lb rule create -g $rg --lb-name $lb \
+    -n HTTPRule --protocol tcp --frontend-port 80 \
+    --backend-port 80 --frontend-ip-name $frontend --backend-pool-name $backendpool \
+    --probe-name $healthprobe --idle-timeout 15 --enable-tcp-reset 15
+
+# Criar NSG Rule
+az network nsg rule create -g $rg --nsg-name $nsg \
+    -n RuleHTTP --protocol "*" \
+    -direction inbound --source-address-prefix "*" \
+    --source-port-range "*" --destination-address-prefix "*" \
+    --destination-port-range 80 --access allow --priority 200
+
+# Criar 2 NIC para Maquinas Virtuais do Azure 
+for z in "${zonearray[@]}"
+do 
+    az network nic create -g $rg -n nic$z --vnet-name $vnet --subnet $snet --network-security-group $nsg
+done
+
+# Criar VMs e Associar com NIC
+for z in "${zonearray[@]}"
+do 
+    az vm create -g $rg -n nic$z --image $img --admin-username $user --admin-password $pass --zone $z
+done
+
+# Instalar IIS Web Server nas VMs do Azure
+for z in "${zonearray[@]}"
+do 
+    az vm extension set --publisher Microsoft.Compute --version 1.8 -n CustomScriptExtension --vm-name vm$z -g $rg \
+        --settings '{"commandToExecute":"powershell Add-WindowsFeature Web-Server; powershell Add-Content -Path \"C:\\inetpub\\wwwroot\\Default.htm\" -Value $($env:computername)"}'
+done
+
+# Adicionar VMs ao Backendpool do Load Balancer Interno
+for z in "${zonearray[@]}"
+do 
+    az network nic ip-config address-pool add -g $rg --lb-name $lb --address-pool $backendpool --ip-config-name ipconfig1 --nic-name nic$z  
+done
+
+# Criar IP Publico 
+az network public-ip create -g $rg -n $ipnat --sku Standard --zone 1 2 3
+
+# Criar NAT Gateway
+az network nat gateway create -g $rg -n $natgtw --public-ip-addresses $ipnat --idle-timeout 10
+
+# Associar NAT Gateway a Subnet 
+az network vnet subnet update -g $rg --vnet-name $vnet -n $snet --nat-gateway $natgtw
+
+# Criar VM para Acesso usando Azure Bastion 
+# criar NIC 
+az network create -g $rg -n $nicvmtest --vnet-name $vnet --subnet $snet --network-security-group $nsg
+
+# Criar VM Windows 10 para Acesso
+az vm create -g $rg -n vmwin10 --nics $nicvmtest --image $imgwin10 --admin-username $user --admin-password $pass
+
+# Criar Bastion Subnet
+az network vnet subnet create -g $rg -n AzureBastionSubnet --vnet-name $vnet --address-prefixes 10.1.1.0/27
+
+# Criar IP Publico do Bastion
+az network public-ip create -g $rg -n $ipbastion --sku Standard
+
+# Criar Bastion Host
+az network bastion create -g $rg -n BastionHost --public-ip-address $ipbastion --vnet-name $vnet -l $local
+
+# Excluir Grupo de Recursos
+az group delete -g $rg -y --no-wait

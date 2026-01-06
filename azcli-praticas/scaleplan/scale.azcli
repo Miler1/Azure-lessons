@@ -1,0 +1,24 @@
+# Escalando App Service Plan
+
+# Login no Azure
+az login --use-device-code
+
+local=brazilsouth
+rg=rg-scale
+appplan=plano-scale
+appservice=appservicescale
+
+# Criar Grupo de Recursos
+az group create -n $rg -l $local
+
+# Criar App Service Plan 
+az appservice plan create -g $rg -n $appplan --sku FREE
+
+# Criar App Service
+az webapp create -g $rg -p $appplan -n $appservice
+
+# Scale Vertical do App Service Plan para o Plano B1
+az appservice plan update -n $appplan -g $rg --sku B1
+
+# Escalando Manualmente B1 é somente 3
+az appservice plan update --number-of-workers 1 -n $appplan -g $rg

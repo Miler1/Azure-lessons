@@ -1,0 +1,52 @@
+# Criar Network Security Group
+az network nsg create
+	--name <nsg_name>
+	--resource-group <resource_group_name>
+	--location <location>
+
+# Listar todos os NSGs em um grupo de recursos
+az network nsg list
+	--resource-group <resource_group_name>
+
+# Detalhes sobre o network security group
+az network nsg show
+	--name <nsg_name>
+	--resource-group <resource_group_name>
+
+# Excluir network NSG delete
+az network nsg delete
+	--name <nsg_name>
+	--resource-group <resource_group_name>
+
+# Criar regras no Network Security Group
+	--name <rule_name>
+	--nsg-name <nsg_name>
+	--resource-group <resource_group_name>
+	--priority <priority>
+	--protocol <protocol>
+	--destination-port-range <port_range>
+	--access <access>
+
+# Criar Application Security Group
+az network asg create 
+	--name <asg_name>
+	--resource-group <resource_group_name>
+	--location <location>
+	
+# Associar ASG a uma máquina virtual do azure
+az network nic ip-config address-pool add
+	--address-pool <asg_name>
+	--ip-config-name <ip_config_name>
+	--nic-name <nic_name>
+	--resource-group <resource_group_name>
+	--subnet <subnet_name>
+	--vnet-name <vnet_name>
+	
+# Criar regra no NSG rule create
+	--name <rule_name>
+	--nsg-name <nsg_name>
+	--resource-group <resource_group_name>
+	--priority <priority>
+	--protocol <protocol>
+	--destination-port-range <port_range>
+	--source-asg <asg_name> --access <access>

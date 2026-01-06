@@ -1,0 +1,15 @@
+# Adicionando proteçção ddos
+az network ddos-protection create
+    --resource-group <resource-group-name>
+    --name <ddos-protection-name>
+    --location <location>
+    --virtual-network <vnet-name>
+    --subnets <subnet-name>
+    --tier <ddos-protection-tier>
+    --protocol <ddos-protection-protocol>
+    --public-ip <public-ip-address>
+
+# Verificar se o ddos está habilitado
+az network ddos-protection show
+    --resource-group <resource-group-name>
+    --name <ddos-protection-name>

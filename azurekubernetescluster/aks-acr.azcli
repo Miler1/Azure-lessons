@@ -1,0 +1,28 @@
+# Login nno Azure
+az login
+
+# Variaveis
+rg=rg-aks-acr
+local=brazilsouth
+acr=acrakscli
+aks=aks-acr-cli
+
+# Criar grupo de Recursos
+az group create -n $rg -l $local
+
+# Criar AKS
+az aks create -g $rg -n $aks \
+  --node-count 1 \
+  --node-vm-size Standard_B2s \
+  --tier free 
+
+# Criar ACR
+az acr create -n $acr -g $rg --sku basic
+
+# Verificar se o ACR esta acessivel no cluster do AKS
+az aks check-acr -n $aks -g $rg --acr $acr.azurecr.io
+
+# É necessário habilitar o usuário Admin no portal do azure e depois rodar o comando abaixo
+
+# Anexar o ACR ao cluster do AKS
+az aks update -g $rg -n $aks --attach-acr $acr

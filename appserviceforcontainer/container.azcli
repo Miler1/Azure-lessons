@@ -1,0 +1,29 @@
+# Login no Azure
+az login
+
+# Build da Imagem Localmente
+docker build -t site-html .
+
+# Login no ACR
+az acr login --name acrcontaienrsapps
+
+# Tag na Imagem Local
+docker tag site-html acrcontaienrsapps.azurecr.io/site-html
+
+# Push para o ACR
+docker push acrcontaienrsapps.azurecr.io/site-html
+
+# Pull do ACR para Maquina Local
+docker pull acrcontaienrsapps.azurecr.io/site-html
+
+# Rodar Imagem vinda do ACR
+docker run -d -p 8080:80 acrcontaienrsapps.azurecr.io/site-html
+
+# Listar Container
+docker container ls
+
+# Parar Docker Run
+docker stop 3c4591447df9
+
+# Webhook
+#https://$appservicecontainersapp:qrmRLT11dayxWTNA8hEzy7Auj8kFhTJSSsykAi1yeaBfWsdZR1q01FS5beA2@appservicecontainersapp-ceawhmawg2g0hwd3.scm.canadacentral-01.azurewebsites.net/api/registry/webhook

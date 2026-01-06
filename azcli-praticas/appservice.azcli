@@ -1,0 +1,56 @@
+# Login nno Azure
+az login
+
+# Variaveis que usaremos
+rg=gruporecursos-appplan
+local=brazilsouth
+appplan=plano-apps-cli
+#sku=Standard_E2s_v3 # brazilsouth
+
+# Criar Grupo de Recursos
+az group create -n $rg -l $local
+
+# Criar App Service Plan da maneira mais simplificada
+az appservice plan create -g $rg -n $appplan
+
+# Criar App Service vinculado ao Plan
+az webapp create -g $rg -p $appplan -n appservice938483
+
+# Criar App Service Java
+az webapp create -g $rg -p $appplan -n appservicetreinamjava --runtime "java|11|Java SE|8"
+
+# Criar App Service Java
+az webapp create -g $rg -p $appplan -n appservicetreinamnode --runtime "node|10.14"
+
+# Mostrar Detalhes do App Service 
+az webapp show -n appservicetreinamnode -g $rg
+
+# Atualizar App Service com Tags
+az webapp update -g $rg -n appservicetreinamnode --set tags.ambiente=treinamento
+
+# URL do App Service 
+az webapp browse -n appservicetreinamnode -g $rg
+
+# Mostrar Log App Service
+az webapp log show -n appservicetreinamnode -g $rg
+
+# Listar todos os App Service 
+az webapp list 
+
+# Listar todos os App Service que estao Running
+az webapp list --query "[?state=='Stopped']"
+
+# Parar App Service
+az webapp stop -n appservicetreinamnode -g $rg
+
+# Iniciar App Service
+az webapp start -n appservicetreinamnode -g $rg
+
+# Reiniciar App Service
+az webapp restart -n appservicetreinamnode -g $rg
+
+# Excluir App Service
+az webapp delete -n appservicetreinamnode -g $rg
+
+# Excluir Plan com App Services
+az appservice plan delete -n $appplan -g $rg

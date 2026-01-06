@@ -1,0 +1,26 @@
+# Login nno Azure
+az login
+
+# Variaveis
+rg=rg-aks-cli
+local=brazilsouth
+aks=aks-cli-detalhado
+sku=Standard_E2s_v3 # brazilsouth
+
+# Criar grupo de Recursos
+az group create -n $rg -l $local
+
+# Criar AKS com 3 nodes, SKU, AAD - Azure Active Directory habilitado e Conta Local desativada
+az aks create -g $rg -n $aks --enable-aad --disable-local-accounts --node-count 3 --node-vm-size $sku \
+    --node-count 1 \
+    --node-vm-size Standard_B2s \
+    --tier free 
+
+# Mostrar Detalhes do AKS
+az aks show -g $rg -n $aks -o yaml
+
+# Detalhes do Azure RBAC
+az aks show -g $rg -n $aks --query {AzureRBAC:aadProfile} -o yaml
+
+# Ativar o Azure RBAC
+az aks update -g $rg -n $aks --enable-azure-rbac
