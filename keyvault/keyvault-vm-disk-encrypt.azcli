@@ -1,0 +1,43 @@
+# Login no azure
+az login
+
+# Parametros
+rg=rg-encrypt
+local=brazilsouth
+vm=vm-win2022
+img=Win2022DataCenter
+user=azureuser
+pass=tr@ining2023
+disk=disk-vmencrypt
+key=keyencryptvm
+kv=kvvmencrypt
+
+# Criar Grupo de Recursos
+az group create -n $rg -l $local
+
+# Criar VM
+az vm create -g $rg -n $vm --image $img --admin-username $user --admin-password $pass --os-disk-name $disk
+
+# Listar discos
+az disk list -g $rg -o table
+
+# Detalhes do disco
+az disk show -g $rg -n $disk --query encryptionSettingsCollections
+
+# Criar Key Vault
+az keyvault create -n $kv -g $rg -l $local --enabled-for-disk-encryption
+
+# Criar chave no Key Vault
+az keyvault key create -n $kv -n $key --kty RSA --size 4096
+
+# Encrypt Disk da VM
+az vm encryption enable -g $rg -n $vm --disk-encryption-keyvault $kv --key-encryption-key $key
+
+# Detalhes do Encryption
+az vm encryption show -n $vm -g $rg
+
+# Desativar Encryption Disk na VM
+az vm encryption disable -n $vm -g $rg --volume-type ALL
+
+# Excluir Grupo de Recursos
+az group delete -n $rg -y --no-wait

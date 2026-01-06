@@ -1,0 +1,44 @@
+# Criar redes virtuais do azure
+az network vnet create
+	--name VNET
+	--resource-group RG
+	--address-prefix 10.0.0.0/16
+	
+# Criar subnets em redes virtuais do azure
+az network vnet subnet create
+	--name SUBNET
+	--vnet-name VNET
+	--address-prefix 10.0.1.0/24
+	
+# Listar subnets da vnet
+az network vne subnet list
+	--resource-group RG
+	--vnet-name VNET
+
+# atualizar subnets em redes virtuais azure
+az network vnet subnet update
+	--name SUBNET
+	--vnet-name VNET
+	--address-prefix 10.0.2.0/24
+
+# excluir subnets da vnet
+az network vnet subnet delete
+	--name SUBNET
+	--vnet-name VNET
+
+# criar múltiplas subnets em uma vnet
+	--name VNET
+	--resource-group RG
+	--address-prefix 10.0.0.0/16
+	--subnet-name FrontEnd
+	--subnet-prefix 10.0.1.0/24
+	--subnet-name BackEnd
+	--subnet-prefix 10.0.2.0/24
+	
+# criar virtual network gateway
+az network vnet-gateway create
+	--name VNETGTW
+	--public-ip-address PUBLICIP
+	--vnet MyVnet --gateway-type Vpn
+	--vpn-type RouteBased
+	--sku VpnGw1

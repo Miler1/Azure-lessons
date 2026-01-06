@@ -1,0 +1,5 @@
+az login
+
+az storage account create --resource-group "AZURE-TREINAMENTO-BATCH" --name "storagetreinamentocli" --location "centralus" --sku "Standard_LRS"
+
+az batch account create --name "batchtreinamentocli" --storage-account "storagetreinamentocli" --resource-group "AZURE-TREINAMENTO-BATCH" --location "centralus"

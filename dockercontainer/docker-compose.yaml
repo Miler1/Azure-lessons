@@ -1,0 +1,16 @@
+version: '2'
+services:
+  web:
+    image: higorluisbarbosa/site-treinamentos:v3
+    build: .
+    container_name: site3
+    restart: always
+    ports:
+      - '8023:80'
+  web2:
+    image: higorluisbarbosa/site-treinamentos:v2
+    build: .
+    container_name: site2
+    restart: always
+    ports:
+      - '8024:80'

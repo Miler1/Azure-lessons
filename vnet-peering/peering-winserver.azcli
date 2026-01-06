@@ -1,0 +1,47 @@
+# Login no Azure
+az login
+
+# PArametros Gerais
+rgbr=rg-brazilsouth
+rgus=rg-eastus2
+
+# Parametros da VNET
+vnetbr=vnet-brazilsouth
+vnetus=vnet-eastus2
+
+# Parametros das Maquinas Virtuais com Windows Server
+img=Win2019Datacenter
+sku=Standard_DS1_v2
+user=azureuser
+pass=tr@ining2023
+vmbr=vm-brazilsouth
+vmus=vm-eastus2
+
+# Criar Grupo de Recursos
+az group create -n $rgbr -l brazilsouth
+az group create -n $rgus -l eastus2
+
+# Criar VNET e Subnet
+az network vnet create -g $rgbr -n $vnetbr --address-prefixes 10.0.0.0/16 --subnet-name default --subnet-prefixes 10.0.0.0/24
+az network vnet create -g $rgus -n $vnetus --address-prefixes 20.0.0.0/16 --subnet-name default --subnet-prefixes 20.0.0.0/24
+
+# Criar VMs
+az vm create -g $rgbr -n $vmbr --image $img --size $sku --admin-username $user --admin-password $pass
+az vm create -g $rgus -n $vmus --image $img --size $sku --admin-username $user --admin-password $pass
+
+# Peering entre as VNETs em diferentes regioes
+
+# se estiver usando Bash no Windows
+export MSYS_NO_PATHCONV=1
+
+# Obter ID das VNETs
+idvnetbr=$(az network vnet show -g $rgbr -n $vnetbr --query id -o tsv)
+idvnetus=$(az network vnet show -g $rgus -n $vnetus --query id -o tsv)
+
+# Peering
+az network vnet peering create -n peering-br-us -g $rgbr --vnet-name $vnetbr --remote-vnet $idvnetus --allow-vnet-access
+az network vnet peering create -n peering-us-br -g $rgus --vnet-name $vnetus --remote-vnet $idvnetbr --allow-vnet-access
+
+# Excluir Grupo de Recursos
+az group delete -n $rgbr -y --no-wait
+az group delete -n $rgus -y --no-wait

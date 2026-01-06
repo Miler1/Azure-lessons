@@ -1,0 +1,36 @@
+# Login no Azure
+az login --use-device-code
+
+local=brazilsouth
+rg=rg-slot
+appplan=plano-slot
+appservice=appserviceslotcli3843
+slot=dev
+
+# Criar Grupo de Recursos
+az group create -n $rg -l $local
+
+# Criar App Service Plan 
+az appservice plan create -g $rg -n $appplan --sku P1V2
+
+# Criar App Service
+az webapp create -g $rg -p $appplan -n $appservice
+
+# Criar Slot no App Service
+az webapp deployment slot create -n $appservice -g $rg --slot $slot
+
+# Listar Slots 
+az webapp deployment slot list -n $appservice -g $rg
+
+# Swap de Dev para Production 
+az webapp deployment slot swap -g $rg -n $appservice --slot $slot --target-slot production
+
+# Traffic Routing no App Service Slot
+az webapp traffic-routing set --distribution $slot=30 -n $appservice -g $rg
+
+# Mostrando Percentual dos Slots 
+az webapp traffic-routing show -n $appservice -g $rg
+
+# Clear do Traffic 
+az webapp traffic-routing clear -n $appservice -g $rg
+

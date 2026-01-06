@@ -1,0 +1,24 @@
+# Processo de Criação de imagem no Linux
+
+# desalocando a maquina virtual
+az vm deallocate \
+   --resource-group myResourceGroup \
+   --name myVM
+   
+# alocando maquina virtual
+az vm generalize \
+   --resource-group myResourceGroup \
+   --name myVM
+
+# comando para criar imagem 
+az image create \
+   --resource-group myResourceGroup \
+   --name myImage --source myVM
+
+# comando para criar imagem com mais detalhe 
+az vm create \
+   --resource-group myResourceGroup \
+   --name myVMDeployed \
+   --image myImage \
+   --admin-username azureuser \
+   --ssh-key-value ~/.ssh/id_rsa.pub

@@ -1,0 +1,53 @@
+# Login no Azure
+az login
+
+# Parametros 
+rg=rg-vmwinbastion
+local=brazilsouth
+vm=vmwin
+img=Win2019Datacenter
+vnet=vnet-vm
+ip=ip-vm
+ipbastion=ip-bastion
+sku=Standard_E2s_v3
+nic=nic-vm
+nsg=nsg-vm
+bastion=bastion-vm
+
+# Criar Grupo de Recursos
+az group create -n $rg -l $local
+
+# Criar VNET e Subnet Default
+az network vnet create -n $vnet -g $rg --address-prefix 10.0.0.0/16 --subnet-name default --subnet-prefixes 10.0.0.0/24
+
+# Criar Subnet do Bastion host
+az network vnet subnet create -n AzureBastionSubnet -g $rg --vnet-name $vnet --address-prefix 10.0.1.0/26
+
+# Criar IP Publico do Bastion host
+az network public-ip create -g $rg -n $ipbastion --sku Standard -l $local
+
+# Criar bastion host
+az network bastion create -g $rg -n $bastion --public-ip-address $ipbastion --vnet-name $vnet -l $local
+
+# Criar Network Security Group (NSG)
+az network nsg create -n $nsg -g $rg -l $local
+
+# Criar Regra para o NSG - Liberar HTTP Porta 80
+az network nsg rule create -g $rg --nsg-name $nsg --name Allow-HTTP-All --access Allow --protocol Tcp \
+  --direction Inbound --priority 100 --source-address-prefix Internet --source-port-range "*" \
+  --destination-address-prefix "*" --destination-port-range 80
+
+# Associar NSG a Subnet Default da VM
+az network vnet subnet update --vnet-name $vnet -n default -g $rg --network-security-group $nsg
+
+# Criar IP da VM
+az network public-ip create -g $rg -n $ip --sku Standard -l $local
+
+# Criar Network Interface (NIC)
+az network nic create -g $rg -n $nic --vnet-name $vnet --subnet default --network-security-group $nsg --public-ip-address $ip
+
+# Criar VM com Bastion Host 
+az vm create -g $rg -n $vm --size $sku --image $img --nics $nic --admin-username azureuser --admin-password tr@ining2023
+
+# Excluir Grupo de Recursos
+az group delete -g $rg -y

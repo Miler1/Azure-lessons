@@ -1,0 +1,38 @@
+# Login nno Azure
+az login
+
+# Variaveis
+rg=rg-aks-cli
+local=brazilsouth
+aks=aks-cli
+sku=Standard_E2s_v3 # brazilsouth
+
+# Criar grupo de Recursos
+az group create -n $rg -l $local
+
+# Provisionando AKS da forma mais simplificada
+az aks create -g $rg -n $aks --node-vm-size $sku \
+    --node-count 1 \
+    --node-vm-size Standard_B2s \
+    --tier free 
+
+# Listando AKS Clusters
+az aks list -o yaml
+
+# URL do AKS
+az aks browse -n $aks -g $rg
+
+# Detalhes do AKS
+az aks show -n $aks -g $rg
+
+# Parar o AKS
+az aks stop -n $aks -g $rg
+
+# Iniciar o AKS
+az aks start -n $aks -g $rg
+
+# Excluir o AKS
+az aks delete -n $aks -g $rg
+
+# Excluir Resource Group
+az group delete -n $rg

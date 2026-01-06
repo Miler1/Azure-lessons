@@ -1,0 +1,34 @@
+# Criação de Máquinas Virtuais do Azure
+az vm create --resource-group <resource_group_name> --name <vm_name> --image <image_sku> --admin-username <username> --admin-password <password>
+--size <vm_size> --location <location>
+
+# Listar todas as VMs em um Grupo de Recursos
+az vm list --resource-group <resource_group_name>
+
+# Iniciar Máquina Virtual do Azure
+az vm start --resource-group <resource_group_name> --name <vm_name>
+
+# Parar uma Máquina Virtual do Azure
+az vm stop --resource-group <resource_group_name> --name <vm_name>
+
+# Detalhes de uma Máquina Virtual do Azure
+az vm show --resource-group <resource_group_name> --name <vm_name>
+
+# Detalhes de uma VM - Obter apenas o ID Resource
+az vm show --resource-group <resource_group_name> --name <vm_name> --query id --output tsv
+
+# Redimensionar VM do Azure
+az vm resize --resource-group <resource_group_name> --name <vm_name> --size <new_vm_size>
+
+# Criar Discos para VMs do Azure
+az disk create --resource-group <resource_group_name> --name <disk_name> --size-gb <disk_size> --os-type <os_type> --os-disk-name <os_disk_name>
+
+# Anexar Novo Disco na VM do Azure
+az vm disk attach --resource-group <resource_group_name> --name <vm_name> --name <disk_name>
+
+# Criar VM a partir de Imagem Personalizada
+az vm create --resource-group <resource_group_name> --name <vm_name> --image <image_sku> --admin-username <username> --admin-password <password>
+--size <vm_size> --location <location> --os-disk-name <os_disk_name> --os-disk-caching <caching_type> --data-disk-sizes-gb <disk_size_1> <disk_size_2>
+
+# Excluir uma Virtual Machine do Azure
+az vm delete --resource-group <resource_group_name> --name <vm_name> --yes

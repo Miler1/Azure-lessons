@@ -1,0 +1,12 @@
+# Login no Azure
+az login
+
+# Parametros
+rg=rg-bicep
+local=eastus2
+
+# Criar Grupo de Recursos
+az group create -n $rg -l $local
+
+# Deploy Bicep
+az deployment group create -g $rg --template-file main.bicep --parameters location=brazilsouth
